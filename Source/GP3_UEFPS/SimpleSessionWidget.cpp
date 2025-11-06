@@ -2,12 +2,22 @@
 
 
 #include "SimpleSessionWidget.h"
-#include "Sessionsubsystem.h"
+
+#include "SessionSubsystem.h"
 
 void USimpleSessionWidget::CreateSession()
 {
 	if (auto* Sub = GetGameInstance()->GetSubsystem<USessionSubsystem>())
 	{
 		Sub->CreateLanSession(3);
+	}
+}
+
+
+void USimpleSessionWidget::FindSession()
+{
+	if (auto* Sub = GetGameInstance()->GetSubsystem<USessionSubsystem>())
+	{
+		Sub->FindLanSessions();
 	}
 }

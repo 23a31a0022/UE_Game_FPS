@@ -13,6 +13,8 @@ UCLASS()
 class GP3_UEFPS_API USimpleSessionWidget : public UUserWidget
 {
 	GENERATED_BODY()
+	
 public:
 	UFUNCTION(BlueprintCallable) void CreateSession();
+	UFUNCTION(BlueprintCallable) void FindSession();
 };
