@@ -5,7 +5,9 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
-#include "LobbyGameMode.h"
+#include "GP3_UEFPSM_LobyGameMode.h"
+
+
 
 
 void AGameStartGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
