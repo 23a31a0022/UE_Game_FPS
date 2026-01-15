@@ -2,6 +2,7 @@
 
 
 #include "CaptureZone.h"
+#include "GameStartGameState.h"
 
 // Sets default values
 ACaptureZone::ACaptureZone()
@@ -23,5 +24,66 @@ void ACaptureZone::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void ACaptureZone::ZoneUpdate()
+{
+    std::vector<int> counts; // チームごとのゾーンに入っている人数
+    counts.insert(counts.begin(), ALobbyGameMode::MaxPlayers, 0);
+
+    // ゾーンに含まれるプレイヤーを全てループ
+    for (auto It = CharactersInZone.CreateIterator(); It; ++It)
+    {
+        if (!It->IsValid())
+        {
+            It.RemoveCurrent();
+            continue;
+        }
+
+        auto ps = It->Get()->GetPlayerState<AGP3PlayerState>();
+        if (ps != nullptr)
+        {
+            // PlayerStateから取得できるTeamIdに応じたcountsを加算
+            counts[ps->TeamId]++;
+        }
+    }
+
+    // 数えた人数が最大の要素を指すcountsのイテレータを取得
+    auto itMax = std::ranges::max_element(counts);
+
+    // 人数が最大のチームの数が単独で存在している場合だけ true
+    auto isDominant = std::ranges::count(counts, *itMax) == 1;
+
+    if (isDominant)
+    {
+        int teamId = itMax - counts.begin();
+        if (DominatingTeamId == teamId)
+        {
+            DominateCount++;
+            if (DominateCount == DominateCountMax)
+            {
+                // 占領が完了した
+                AGameStartGameState* GS = GetWorld()->GetGameState<AGameStartGameState>();
+                if (!GS) return;
+
+                // 占領したことをゲームステートに通知
+                GS->OnDominate(GetName(), DominatingTeamId);
+            }
+        }
+        else
+        {
+            DominatingTeamId = teamId;
+            DominateCount = 0;
+        }
+        UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
+    }
+    else
+    {
+        if (DominateCount > 0)
+        {
+            DominateCount--;
+            UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
+        }
+    }
 }
 

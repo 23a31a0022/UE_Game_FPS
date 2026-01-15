@@ -6,8 +6,16 @@
 #include "Net/UnrealNetwork.h"
 #include "Kismet/GameplayStatics.h"
 #include "GP3_UEFPSM_LobyGameMode.h"
+#include <map>
 
 
+void TickGameCount();
+void OnRep_GameEnd();
+void OnDominate(const FString& zoneName, int teamId);
+
+FTimerHandle GameCountTimerHandle;
+static constexpr int GameCountMax = 60;
+std::map<FString, int> DominatedTeamMap;
 
 
 void AGameStartGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -79,3 +87,48 @@ void AGameStartGameState::OnRep_GameStarted()
 {
     UKismetSystemLibrary::PrintString(this, TEXT("Game Start!!"), true, true, FColor::Yellow, 6.f, TEXT("None"));
 }
+void AGameStartGameState::TickCountdown()
+{
+    if (--RemainingTime <= 0)
+    {
+        GetWorld()->GetTimerManager().ClearTimer(CountdownTimerHandle);
+        bGameStarted = true;
+        OnRep_GameStarted(); // 明示呼び出し（サーバー側）
+
+        // ゲームのカウントタイマーをセット
+        RemainingTime = GameCountMax;
+        GetWorld()->GetTimerManager().SetTimer(GameCountTimerHandle, this,
+            &AGameStartGameState::TickGameCount, 1.0f, true);
+    }
+
+    OnRep_RemainingTime(); // 全クライアントに更新を通知
+}
+
+void AGameStartGameState::TickGameCount()
+{
+    if (--RemainingTime <= 0)
+    {
+        // ゲーム終了
+        GetWorld()->GetTimerManager().ClearTimer(GameCountTimerHandle);
+        OnRep_GameEnd(); // 明示呼び出し（サーバー側）
+    }
+
+    OnRep_RemainingTime(); // 全クライアントに更新を通知
+}
+void AGameStartGameState::OnDominate(const FString& zoneName, int teamId)
+{
+    DominatedTeamMap[zoneName] = teamId;
+}
+
+void AGameStartGameState::OnRep_GameEnd()
+{
+    UKismetSystemLibrary::PrintString(this, TEXT("Game End!!"), true, true, FColor::Yellow, 6.f, TEXT("None"));
+
+    for (auto& pair : DominatedTeamMap)
+    {
+        FString str = FString::Printf(TEXT("Zone:%s dominate - %d"), *pair.first, pair.second);
+        UKismetSystemLibrary::PrintString(this, str, true, true, FColor::Green, 6.f, TEXT("None"));
+    }
+}
+
+
