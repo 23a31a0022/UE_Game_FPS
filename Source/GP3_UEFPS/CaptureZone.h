@@ -6,6 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "CaptureZone.generated.h"
 
+
+int DominatingTeamId = -1;
+int DominateCount = 0;
+
+static constexpr int DominateCountMax = 15;
 UCLASS()
 class GP3_UEFPS_API ACaptureZone : public AActor
 {

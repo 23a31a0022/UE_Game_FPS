@@ -56,34 +56,7 @@ void ACaptureZone::ZoneUpdate()
 
     if (isDominant)
     {
-        int teamId = itMax - counts.begin();
-        if (DominatingTeamId == teamId)
-        {
-            DominateCount++;
-            if (DominateCount == DominateCountMax)
-            {
-                // 占領が完了した
-                AGameStartGameState* GS = GetWorld()->GetGameState<AGameStartGameState>();
-                if (!GS) return;
-
-                // 占領したことをゲームステートに通知
-                GS->OnDominate(GetName(), DominatingTeamId);
-            }
-        }
-        else
-        {
-            DominatingTeamId = teamId;
-            DominateCount = 0;
-        }
-        UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
-    }
-    else
-    {
-        if (DominateCount > 0)
-        {
-            DominateCount--;
-            UE_LOG(LogTemp, Log, TEXT("DominatingTeamId =%d DominateCount=%d"), DominatingTeamId, DominateCount);
-        }
+        UE_LOG(LogTemp, Log, TEXT("Dominant Players=%d"), itMax - counts.begin());
     }
 }
 
